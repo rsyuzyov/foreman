@@ -1,0 +1,8 @@
+{
+  "name": "Debian 12 Codespace",
+  "image": "debian:12",
+  "postCreateCommand": "apt update && apt-get install -y",
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash"
+  }
+}
