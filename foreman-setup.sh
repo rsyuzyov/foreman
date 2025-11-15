@@ -36,7 +36,6 @@ dpkg -i ./assets/*.deb || true
 apt --fix-broken install -y 
 
 apt install -y ruby-foreman-fog-proxmox
-apt install -y ruby-foreman-docker
 
 foreman-installer --enable-foreman-plugin-ansible --enable-foreman-proxy-plugin-ansible
 
