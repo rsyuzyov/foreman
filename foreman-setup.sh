@@ -22,11 +22,11 @@ apt install -y ca-certificates wget gnupg lsb-release locales
 sed -i 's/^# *\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen
 sed -i 's/^# *\(ru_RU.UTF-8 UTF-8\)/\1/' /etc/locale.gen
 locale-gen
-update-locale LANG=en_US.UTF-8
+update-locale LANG=ru_RU.UTF-8
 
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
-export LC_CTYPE=en_US.UTF-8
+export LANG=ru_RU.UTF-8
+export LC_ALL=ru_RU.UTF-8
+export LC_CTYPE=ru_RU.UTF-8
 
 [ -f /usr/share/keyrings/foreman.gpg ] && rm -f /usr/share/keyrings/foreman.gpg
 wget -O- https://deb.theforeman.org/pubkey.gpg | gpg --dearmor -o /usr/share/keyrings/foreman.gpg 2>/dev/null || true
