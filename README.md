@@ -11,16 +11,10 @@ lxc используется в Proxmox в качестве системы ко�
 - 8 ГБ ОЗУ (min 4)
 - опции: keyctl, nesting  
 
-Для proxmox до 9 дополнительно в конфиг (/etc/pve/nodes/$(hostname)/lxc/<id>.conf) добавить:
-```
-lxc.apparmor.profile = unconfined
-lxc.cgroup.devices.allow = a
-lxc.cap.drop =
-```
-
 ## Установка
 Запустить с повышенными правами:
 ```bash
+apt update -y
 apt install git -y
 git clone https://github.com/rsyuzyov/foreman-setup.git
 cd foreman-setup

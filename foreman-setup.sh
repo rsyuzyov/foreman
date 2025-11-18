@@ -7,10 +7,20 @@ if [[ "$ID" != "debian" || "$VERSION_ID" != "12" ]]; then
   exit 1
 fi
 
-# Если в lxc динамичесикий ip, то для fqdn будет ip 127.0.1.1 и при установке foreman не проверка записи dns не будет выполнена
-if grep -q "127.0.1.1 $(hostname -f)" /etc/hosts; then
-  sed -i "/^127.0.1.1 $(hostname -f).*/d" /etc/hosts
-  grep -qxF "127.0.0.1 $(hostname -f) $(hostname -s)" /etc/hosts || sed -i "1i127.0.0.1 $(hostname -f) $(hostname -s)" /etc/hosts
+# Настройка /etc/hosts для корректного разрешения FQDN в реальный IP
+# Foreman требует, чтобы FQDN разрешался в IP интерфейса, а не 127.0.0.1/127.0.1.1
+CURRENT_IP=$(hostname -I | awk '{print $1}')
+FQDN=$(hostname -f)
+SHORTNAME=$(hostname -s)
+
+if [ -n "$CURRENT_IP" ]; then
+  # Удаляем старые записи для FQDN, если они указывают на loopback
+  sed -i "/^127\.0\.[01]\.1[[:space:]].*$FQDN/d" /etc/hosts
+  
+  # Добавляем запись с реальным IP, если её нет
+  if ! grep -q "^$CURRENT_IP.*$FQDN" /etc/hosts; then
+    echo "$CURRENT_IP $FQDN $SHORTNAME" >> /etc/hosts
+  fi
 fi
 
 apt update && apt dist-upgrade -y
@@ -38,6 +48,7 @@ systemctl enable postgresql
 systemctl start postgresql
 
 foreman-installer \
+  --skip-checks-i-know-better \
   --enable-apache-mod-status \
   --enable-foreman \
   --enable-foreman-cli \
