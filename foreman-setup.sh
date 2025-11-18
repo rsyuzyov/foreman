@@ -7,14 +7,11 @@ if [[ "$ID" != "debian" || "$VERSION_ID" != "12" ]]; then
   exit 1
 fi
 
-# apt по умолчанию пытается работать на ipv6, но не всегда справляется
-grep -qxF "net.ipv6.conf.all.disable_ipv6 = 1" /etc/sysctl.conf || echo "net.ipv6.conf.all.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
-grep -qxF "net.ipv6.conf.default.disable_ipv6 = 1" /etc/sysctl.conf || echo "net.ipv6.conf.default.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
-grep -qxF "net.ipv6.conf.lo.disable_ipv6 = 1" /etc/sysctl.conf || echo "net.ipv6.conf.lo.disable_ipv6 = 1" | tee -a /etc/sysctl.conf
-
-# foreman требует в hosts запись fqdn для 127.0.0.1, если ip динамический; запись должна быть первой, не должно быть других записей для fqdn
-sed -i "/^127.0.1.1 $(hostname -f).*/d" /etc/hosts
-grep -qxF "127.0.0.1 $(hostname -f) $(hostname -s)" /etc/hosts || sed -i "1i127.0.0.1 $(hostname -f) $(hostname -s)" /etc/hosts
+# Если в lxc динамичесикий ip, то для fqdn будет ip 127.0.1.1 и при установке foreman не проверка записи dns не будет выполнена
+if grep -q "127.0.1.1 $(hostname -f)" /etc/hosts; then
+  sed -i "/^127.0.1.1 $(hostname -f).*/d" /etc/hosts
+  grep -qxF "127.0.0.1 $(hostname -f) $(hostname -s)" /etc/hosts || sed -i "1i127.0.0.1 $(hostname -f) $(hostname -s)" /etc/hosts
+fi
 
 apt update && apt dist-upgrade -y
 apt install -y ca-certificates wget gnupg lsb-release locales
@@ -34,17 +31,11 @@ echo "deb [signed-by=/usr/share/keyrings/foreman.gpg] http://deb.theforeman.org/
 echo "deb [signed-by=/usr/share/keyrings/foreman.gpg] http://deb.theforeman.org/ plugins 3.17" | tee /etc/apt/sources.list.d/foreman-plugins.list
 apt update
 
-#apt --fix-broken install -y 
-apt install -y openjdk-17-jdk
-apt install -y postgresql
+dpkg -i ./assets/*.deb
+apt --fix-broken install -y 
+apt install -y -o Acquire::ForceIPv4=true openjdk-17-jdk postgresql foreman-installer
 systemctl enable postgresql
 systemctl start postgresql
-
-dpkg -i ./assets/*.deb || true
-apt --fix-broken install -y 
-
-apt install -y foreman-installer
-apt install -y ruby-foreman-fog-proxmox
 
 foreman-installer \
   --enable-apache-mod-status \
