@@ -91,6 +91,14 @@ export LANG=ru_RU.UTF-8
 export LC_ALL=ru_RU.UTF-8
 export LC_CTYPE=ru_RU.UTF-8
 
+apt install -y -o Acquire::ForceIPv4=true openjdk-17-jdk
+
+if [ "$PG_HOST" ]; then
+  apt install -y -o Acquire::ForceIPv4=true  postgresql
+  systemctl enable postgresql
+  systemctl start postgresql
+fi
+
 [ -f /usr/share/keyrings/foreman.gpg ] && rm -f /usr/share/keyrings/foreman.gpg
 wget -O- https://deb.theforeman.org/pubkey.gpg | gpg --dearmor -o /usr/share/keyrings/foreman.gpg 2>/dev/null || true
 echo "deb [signed-by=/usr/share/keyrings/foreman.gpg] http://deb.theforeman.org/ bookworm $FOREMAN_VERSION" | tee /etc/apt/sources.list.d/foreman.list
@@ -99,14 +107,6 @@ apt update
 
 dpkg -i ./assets/*.deb
 apt --fix-broken install -y 
-
-if [ "$PG_HOST" ]; then
-  apt install -y -o Acquire::ForceIPv4=true  postgresql
-  systemctl enable postgresql
-  systemctl start postgresql
-fi
-
-apt install -y -o Acquire::ForceIPv4=true openjdk-17-jdk
 apt install -y -o Acquire::ForceIPv4=true foreman-installer
 
 if [ -n "$PG_HOST" ]; then
