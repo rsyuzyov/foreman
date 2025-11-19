@@ -34,9 +34,14 @@ cd ..
 ./foreman-setup.sh -v 3.16 -check
 ```
 
+Использование внешнего сервера PostgreSQL:
+```bash
+./foreman-setup.sh -pghost srv-db -pglogin postgres -pgpass yourpwd
+```
+
 ## Примечания
 ### Репозиторий puppet
-Установка чего-либо невозможна ни через ipv6, ни через ipv4 - скорость рандомно падает ниже 1 Кб/с и установка прерывается.  
+Весьма странная история: при установке пакетов скорость рандомно падает ниже 1 Кб/с и установка прерывается, хоть через ipv6, хоть через ipv4.  
 Обход: скачать руками, закинуть в ВМ и установить:  
 ```
 https://apt.puppet.com/pool/bookworm/puppet8/p/puppet-agent/puppet-agent_8.10.0-1bookworm_amd64.deb  

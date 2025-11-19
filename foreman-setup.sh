@@ -14,6 +14,18 @@ while [[ $# -gt 0 ]]; do
       SKIP_CHECKS=""
       shift
       ;;
+    -pghost)
+      PG_HOST="$2"
+      shift 2
+      ;;
+    -pglogin)
+      PG_LOGIN="$2"
+      shift 2
+      ;;
+    -pgpass)
+      PG_PASS="$2"
+      shift 2
+      ;;
     *)
       echo "Unknown option: $1"
       exit 1
@@ -28,6 +40,10 @@ else
 fi
 
 echo "Устанавливаемая версия Foreman: $FOREMAN_VERSION, проверки $CHECKS_STATUS"
+
+if [ -n "$PG_HOST" ]; then
+  echo "Используется внешний PostgreSQL: $PG_HOST"
+fi
 
 . /etc/os-release
 if [[ "$ID" != "debian" || "$VERSION_ID" != "12" ]]; then
@@ -71,12 +87,24 @@ apt update
 
 dpkg -i ./assets/*.deb
 apt --fix-broken install -y 
-apt install -y -o Acquire::ForceIPv4=true openjdk-17-jdk postgresql foreman-installer
-systemctl enable postgresql
-systemctl start postgresql
+
+if [ -n "$PG_HOST" ]; then
+  apt install -y -o Acquire::ForceIPv4=true openjdk-17-jdk foreman-installer
+else
+  apt install -y -o Acquire::ForceIPv4=true openjdk-17-jdk postgresql foreman-installer
+  systemctl enable postgresql
+  systemctl start postgresql
+fi
+
+if [ -n "$PG_HOST" ]; then
+  DB_ARGS="--foreman-db-manage=false --foreman-db-host=$PG_HOST --foreman-db-username=$PG_LOGIN --foreman-db-password=$PG_PASS"
+else
+  DB_ARGS=""
+fi
 
 foreman-installer \
   $SKIP_CHECKS \
+  $DB_ARGS \
   --enable-apache-mod-status \
   --enable-foreman \
   --enable-foreman-cli \
